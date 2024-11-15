@@ -10,8 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EyeIcon } from "../../components/EyeIcon";
-import { EditIcon } from "../../components/EditIcon";
+// import { EyeIcon } from "../../components/EyeIcon";
+// import { EditIcon } from "../../components/EditIcon";
 
 export default function Payroll() {
   const [employees, setEmployees] = useState([]);
@@ -29,7 +29,7 @@ export default function Payroll() {
   }, []);
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
+    <div className="p-8 min-h-screen">
       <div className="bg-white shadow-md rounded-lg p-6 max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">All Employees</h1>
         
@@ -44,7 +44,6 @@ export default function Payroll() {
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Salary-KSH</TableHead>
-              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -74,8 +73,8 @@ export default function Payroll() {
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center items-center gap-2">
-                    <EyeIcon className="cursor-pointer" />
-                    <EditIcon className="cursor-pointer" />
+                    {/* <EyeIcon className="cursor-pointer" />
+                    <EditIcon className="cursor-pointer" /> */}
                   </div>
                 </TableCell>
               </TableRow>

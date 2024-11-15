@@ -1,26 +1,35 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IconHome2, IconCreditCard, IconMenu2, IconX } from '@tabler/icons-react';
+import { IconHome2, IconCreditCard, IconMenu2, IconX, IconCreditCardPay, IconCalendarClock, IconFiles, IconLogout } from '@tabler/icons-react';
+import supabase from "../../lib/supabaseClient";
+import { useRouter } from 'next/navigation';
 
 const Sidebar = ({ onNavigate, isOpen, setIsOpen }) => {
   const [activeView, setActiveView] = useState('overview');
+  const router = useRouter();
 
   const handleNavigation = (view) => {
     setActiveView(view);
     onNavigate(view);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login'); 
+  };
+
   const links = [
-    { label: 'AdvanceForm', icon: <IconHome2 />, view: 'AdvanceForm' },
-    { label: 'AdvanceRequests', icon: <IconCreditCard />, view: 'AdvanceRequests' },
-    { label: 'Request Advance', icon: <IconCreditCard />, view: 'AdvanceRequest' },
-    { label: 'Payroll', icon: <IconMenu2 />, view: 'Payroll' },
+    { label: 'Advance-Form', icon: <IconFiles />, view: 'AdvanceForm' },
+    { label: 'Advance-Requests', icon: <IconCalendarClock />, view: 'AdvanceRequests' },
+    { label: 'Payroll', icon: <IconCreditCardPay />, view: 'Payroll' },
+    { label: 'Stats', icon: <IconCreditCardPay />, view: 'Stats' },
+
   ];
 
   return (
     <motion.div
-      className={`h-full text-black fixed transition-all duration-300 ${isOpen ? 'bg-white w-64' : 'bg-black w-16'}`}
+      className={`h-full text-black fixed transition-all  rounded-md duration-300 ${isOpen ? 'bg-white w-64' : 'bg-black w-16'}`}
     >
       {/* Toggle Button */}
       <div className="flex justify-end p-4">
@@ -31,7 +40,7 @@ const Sidebar = ({ onNavigate, isOpen, setIsOpen }) => {
 
       {/* Company Logo */}
       <div className="flex justify-center items-center p-4 border-b border-gray-300">
-        <img src="/logo.png" alt="Company Logo" className="h-8" />
+        <img src="/logo.png" alt="Company Logo" className="h-8 w-50" />
       </div>
 
       {/* User Info Section */}
@@ -62,8 +71,8 @@ const Sidebar = ({ onNavigate, isOpen, setIsOpen }) => {
         {links.map((link, index) => (
           <motion.li
             key={index}
-            className={`p-2 cursor-pointer text-sm flex items-center gap-2 rounded-md ${
-              activeView === link.view ? (isOpen ? 'bg-[#5F8C49] text-white' : 'text-white') : (isOpen ? 'text-black' : 'text-gray-400')
+            className={`p-2 cursor-pointer text-sm flex items-center gap-2  ${
+              activeView === link.view ? (isOpen ? 'bg-[#668743] text-white' : 'text-white') : (isOpen ? 'text-black' : 'text-gray-400')
             }`}
             onClick={() => handleNavigation(link.view)}
             initial={{ opacity: 0 }}
@@ -89,20 +98,16 @@ const Sidebar = ({ onNavigate, isOpen, setIsOpen }) => {
         ))}
       </ul>
 
-      {/* Help Center Card - only visible when sidebar is open */}
-      {isOpen && (
-        <motion.div
-          className="mt-auto p-4"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
+      {/* Logout Button */}
+      <div className="mt-auto p-4">
+        <button
+          onClick={handleLogout}
+          className="flex items-center mt-36 gap-2 text-sm text-red-500 bg-black hover:bg-red-100 rounded-md p-2 w-full"
         >
-          <div className="bg-yellow-200 p-4 rounded-lg text-center">
-            <img src="/helpcentre.png" alt="Help Center" className="w-16 h-16 mx-auto mb-2" />
-            <p className="font-semibold text-black">Help Center</p>
-          </div>
-        </motion.div>
-      )}
+          <IconLogout size={20} />
+          {isOpen && <span>Logout</span>}
+        </button>
+      </div>
     </motion.div>
   );
 };

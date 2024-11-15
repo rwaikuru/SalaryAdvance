@@ -10,10 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EyeIcon } from "../../../components/EyeIcon";
+import { EyeIcon } from "../../../../components/EyeIcon";
+import { EditIcon } from "../../../components/EditIcon";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -22,7 +24,6 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@nextui-org/react"; // NextUI Pagination Component
-import { useAuth } from "../../../lib/AuthContext"; // assuming you have an AuthContext to get the user's role
 
 export default function AdvanceRequests() {
   const [requests, setRequests] = useState([]);
@@ -32,11 +33,9 @@ export default function AdvanceRequests() {
   const [approvalState, setApprovalState] = useState(null);
   const [approverTitle, setApproverTitle] = useState("");
   const [approverEmail, setApproverEmail] = useState("");
-  const [searchEmail, setSearchEmail] = useState(""); 
+  const [searchEmail, setSearchEmail] = useState(""); // For search input
   const [currentPage, setCurrentPage] = useState(1);
-  const requestsPerPage = 5; 
-
-  const { role, userEmail } = useAuth(); 
+  const requestsPerPage = 5; // Number of requests per page
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -58,19 +57,13 @@ export default function AdvanceRequests() {
       if (error) {
         console.error("Error fetching advance requests:", error);
       } else {
-        // Filter requests based on role
-        const userRequests =
-          role === "Employee"
-            ? data.filter((request) => request.employees?.email === userEmail)
-            : data; // HR and Admin see all requests
-
-        setRequests(userRequests);
-        setFilteredRequests(userRequests); // Initialize filtered requests
+        setRequests(data);
+        setFilteredRequests(data); // Initialize filtered requests
       }
     };
 
     fetchRequests();
-  }, [role, userEmail]);
+  }, []);
 
   // Filter requests based on search input
   useEffect(() => {
@@ -98,26 +91,6 @@ export default function AdvanceRequests() {
     setApprovalState("Declined");
   };
 
-  const handleCancelRequest = async () => {
-    if (selectedRequest) {
-      const { error } = await supabase
-        .from("advance_requests")
-        .update({ status: "Cancelled" })
-        .eq("id", selectedRequest.id);
-
-      if (error) {
-        console.error("Error cancelling request:", error);
-      } else {
-        setRequests((prev) =>
-          prev.map((req) =>
-            req.id === selectedRequest.id ? { ...req, status: "Cancelled" } : req
-          )
-        );
-        setIsOpen(false);
-      }
-    }
-  };
-
   const handleSave = async () => {
     if (selectedRequest && approvalState) {
       const updatedStatus = approvalState;
@@ -135,6 +108,7 @@ export default function AdvanceRequests() {
           )
         );
         setIsOpen(false);
+        setApprovalState(null);
       }
 
       if (approverTitle && approverEmail) {
@@ -210,6 +184,7 @@ export default function AdvanceRequests() {
                 <TableCell className="text-center">
                   <div className="flex justify-center items-center gap-2">
                     <EyeIcon className="cursor-pointer" onClick={() => handleEyeClick(request)} />
+                    <EditIcon className="cursor-pointer" />
                   </div>
                 </TableCell>
               </TableRow>
@@ -234,7 +209,7 @@ export default function AdvanceRequests() {
 
         {selectedRequest && (
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetContent side="right" className="h-full overflow-y-auto">
+            <SheetContent side="right">
               <SheetHeader>
                 <SheetTitle>Request Details</SheetTitle>
                 <SheetDescription>
@@ -250,52 +225,32 @@ export default function AdvanceRequests() {
                 <p><strong>Repayment Period:</strong> {selectedRequest.repayment_period}</p>
                 <p><strong>Reason for Advance:</strong> {selectedRequest.reason_for_advance}</p>
 
-                {/* Approval Status Path */}
                 <div className="mt-4">
-                  <h2 className="font-bold mb-2">Approval Status Path</h2>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Approval Step</TableHead>
-                        <TableHead>Approver</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>Step 1: Initial Approval</TableCell>
-                        <TableCell>Person A (Admin Dept, Manager)</TableCell>
-                        <TableCell className="text-green-700">Approved</TableCell>
-                        <TableCell>01/14/2024</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Step 2: Finance Review</TableCell>
-                        <TableCell>Person B (Finance Office)</TableCell>
-                        <TableCell className="text-yellow-700">Pending</TableCell>
-                        <TableCell>-</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Step 3: Final Approval</TableCell>
-                        <TableCell>Person C (Director)</TableCell>
-                        <TableCell className="text-yellow-700">Pending</TableCell>
-                        <TableCell>-</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                  <label className="block text-sm font-medium">Approver's Title</label>
+                  <Input
+                    type="text"
+                    placeholder="Enter approver's title"
+                    value={approverTitle}
+                    onChange={(e) => setApproverTitle(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium">Approver's Email Address</label>
+                  <Input
+                    type="email"
+                    placeholder="Enter approver's email address"
+                    value={approverEmail}
+                    onChange={(e) => setApproverEmail(e.target.value)}
+                    className="mt-1"
+                  />
                 </div>
               </div>
               <SheetFooter>
-                {role === "HR" || role === "Admin" ? (
-                  <>
-                    <Button className="bg-green-500" onClick={handleApproveClick}>Approve</Button>
-                    <Button className="bg-red-500" onClick={handleDeclineClick}>Deny</Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setIsOpen(false)}>Okay</Button>
-
-
-                )}
+                <Button variant="outline" onClick={() => setIsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave}>Save</Button>
               </SheetFooter>
             </SheetContent>
           </Sheet>
